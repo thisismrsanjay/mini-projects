@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Camera</h1>
+    <video  id="myVideoTag"  height="" width="1200px"></video>
+    <video id="theirVideoTag"  height="" width="1200px"></video>
+    <div>
+        <label >your name</label>
+        <input id="myName" type="text">
+        <label >message</label>
+        <input id="myMessage" type="text">
+        <button type="submit" id="sendMessage">Submit</button>
+        <div id="chatArea">Message Output: <br></div>
+        <div id="signalingArea">Signaling Messages: <br/></div>
+    </div>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        let socket = io.connect('http://localhost:5000');
+        let chatArea = document.querySelector("#chatArea");
+        let myName = document.querySelector("#myName");
+        let myMessage = document.querySelector("#myMessage");
+        let sendMessage =document.querySelector("#sendMessage");
+        let signalingArea =document.querySelector("#signalingArea");
+        var myVideoArea = document.querySelector("#myVideoTag");
+        var theirVideoArea = document.querySelector("#theirVideoTag");
+
+
+        let configuration = {
+            'iceServers':[{
+                'url':'stun:stun.l.google.com:19302'
+            }]
+        }
+        let rtcPeerConn;
+
+        //send a first signaling message to anyone listining
+        //this normally would be a button click
+        socket.emit('signal',{"type":"user_here","message":"are your ready for a call ","room":"signal_room"})
+        
+        socket.on('announce',(data)=>{
+            displayMessage(data.message);
+        })
+        function displayMessage(message){
+            chatArea.innerHTML += message +"<br/>"
+        }
+        function displaySignalingMessage(message){
+            signalingArea.innerHTML += message +"<br/>"
+        }
+
+        sendMessage.onclick=function ree(){
+            socket.emit('send message',{
+                author:myName.value,
+                message:myMessage.value
+            } );
+        }
+        socket.on('show message',(data)=>{
+            chatArea.append('<strong>'+ data.author +'</strong>: '+data.message+'<br>')
+        })
+        
+        socket.on('signaling_message',(data)=>{
+            displaySignalingMessage("signal recived: "+data.type);
+            if(!rtcPeerConn)
+                startSignaling()
+            if(data.type!="user_here"){
+                var message= JSON.parse(data.message);
+                if(message.sdp){
+                    rtcPeerConn.setRemoteDescription(new RTCSessionDescription(message.sdp),
+                        function(){
+                            //if we recived ,we need to answer
+                            if(rtcPeerConn.remoteDescription.type=='offer'){
+                                rtcPeerConn.createAnswer(sendLocalDesc,logError);
+                            }
+                        },logError)
+                }
+            }
+        })
+        function startSignaling(){
+            displaySignalingMessage("start signaling...");
+            rtcPeerConn = new webkitRTCPeerConnection(configuration);
+
+            rtcPeerConn.onicecandidate =function (evt){
+                if(evt.candidate){
+                    io.emit('signal',{"type":"ice candidate","message":JSON.stringify({
+                        'candidate':evt.candidate
+                    }),"room":"signal_room"});
+                    displaySignalingMessage("completed that ice candidate...");
+                }
+            };
+
+            //let the 'negotiantionneeded' event trigger offer generarion
+            rtcPeerConn.onnegotiationneded=function(){
+                displaySignalingMessage("on negotiontion called");
+                rtcPeerConn.createOffer(sendLocalDesc,logError);
+            }
+            //once remote stream arrives,show it in the remote video lement
+            rtcPeerConn.onaddstream = function(evt){
+                displaySignalingMessage("going to add their stream...");
+                theirVideoArea.src =URL.createObjectURL(evt.stream);
+            }
+            navigator.getUserMedia=navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+            navigator.getUserMedia({
+                'audio':true,
+                'video':true
+            },function(stream){
+                displaySignalingMessage("going to my stream...");
+                myVideoArea.src = URL.createObjectURL(stream);
+                rtcPeerConn.addStream(stream);
+            },logError);
+        }
+        function sendLocalDesc(desc){
+            rtcPeerConn.setLocalDescription(desc,function(){
+                displaySignalingMessage("sending local description");
+                socket.emit('signal',{"type":"SDP","message":JSON.stringify({
+                        'sdp':rtcPeerConn.localDescription
+                    }),"room":"signal_room"})
+            })
+        }
+        function logError(error){
+            displaySignalingMessage(error.name+':'+error.message);
+        }
+
+        
+
+        // const constraints = {
+        //     audio:false,
+        //     video :{width: {min: 240}, height: {min: 240}}
+        //     };
+        // const videoArea = document.querySelector('video');
+        
+        // navigator.getUserMedia(constraints ,onSuccess,onError);
+
+        // function onSuccess(stream){
+        //     console.log("Success! we have a stream!");
+        //     videoArea.src=  window.URL.createObjectURL(stream);
+        //     videoArea.play(()=>{
+        //         console.log('?')
+        //     });
+        // }
+        function logError(error){
+            console.log("Some error happened",error);
+        }
+    </script>
+</body>
+</html>
