@@ -1,0 +1,1 @@
+![git hub ](https://github.com/thisismrsanjay/mini-projects/blob/master/typefast/Capture.PNG)
