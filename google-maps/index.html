@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>googleMaps</title>
+</head>
+<style>
+    #map {
+        height: 400px;
+        width: 100%;
+    }
+</style>
+
+<body>
+    My Google Map
+    <div id="map"></div>
+    <script>
+        function initMap() {
+
+            let option = {
+                zoom: 8,
+                center: { lat: 21.207398, lng: 81.309644 }
+            }
+            //map obj
+            const map = new google.maps.Map(document.getElementById('map'), option)
+            
+            /*
+            //add marker
+            const marker = new google.maps.Marker({
+                position: { lat: 21.207398, lng: 81.309644 },
+                map: map,
+                icon: 'data:image/png;base64,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'
+            })
+
+            var contentString = '<div id="content">' +
+                '<div id="siteNotice">' +
+                '</div>' +
+                '<h1 id="firstHeading" class="firstHeading">Uluru</h1>' +
+                '<div id="bodyContent">' +
+                '<p><b>Uluru</b>, also referred to as <b>Ayers Rock</b>, is a large ' +
+                'sandstone rock formation in the southern part of the ' +
+                'Northern Territory, central Australia. It lies 335&#160;km (208&#160;mi) ' +
+                'south west of the nearest large town, Alice Springs; 450&#160;km ' +
+                '(280&#160;mi) by road. Kata Tjuta and Uluru are the two major ' +
+                'features of the Uluru - Kata Tjuta National Park. Uluru is ' +
+                'sacred to the Pitjantjatjara and Yankunytjatjara, the ' +
+                'Aboriginal people of the area. It has many springs, waterholes, ' +
+                'rock caves and ancient paintings. Uluru is listed as a World ' +
+                'Heritage Site.</p>' +
+                '<p>Attribution: Uluru, <a href="https://en.wikipedia.org/w/index.php?title=Uluru&oldid=297882194">' +
+                'https://en.wikipedia.org/w/index.php?title=Uluru</a> ' +
+                '(last visited June 22, 2009).</p>' +
+                '</div>' +
+                '</div>';
+
+            var infowindow = new google.maps.InfoWindow({
+                content: contentString
+            });
+            marker.addListener('click', function () {
+                infowindow.open(map, marker);
+            });
+            */
+
+            addMarker({lat: 21.207398, lng: 81.309644});
+            addMarker({lat: 21.1904, lng: 81.2849});
+            
+            //multiple markers 
+            function addMarker(coords){
+                const marker = new google.maps.Marker({
+                position:  coords ,
+                map: map,
+                icon: 'data:image/png;base64,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'
+            })    
+            }
+            
+            //click to add marker
+            google.maps.event.addListener(map,'click',function(event){
+                addMarker(event.latLng)
+            })
+        }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBwc4NiXhES10EDwGj4ku9cXKWs2zeZZXs&callback=initMap"
+        async defer></script>
+</body>
+
+</html>
