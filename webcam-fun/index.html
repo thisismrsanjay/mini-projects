@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>web-cam fun</title>
+</head>
+<style>
+    body{
+        font-family: Arial, Helvetica, sans-serif;
+    }
+    button{
+
+    }
+</style>
+<body>
+    <center>
+          <div >
+        <div class="controls">
+            <button onclick="takePhoto()">Take Photo</button>
+            <button onclick="stop()">Stop Recording</button>
+            <button onclick="rec()">Start Recording</button>
+            <select>
+                <option value="normal">Normal</option>
+                <option value="redEffect">Red filter</option>
+                <option value="green">Green filter</option>
+                <option value="blue">Blue filter</option>
+                <option value="shift">Shift</option>
+              </select>  
+        </div>
+
+        <canvas class="photo"></canvas>
+        <video width="300px" class="player"></video>
+        <div class="strip"></div>
+    </div>
+    <audio src="https://wesbos.com/demos/photobooth/snap.mp3" class="snap" hidden></audio>
+  
+    </center>
+    
+
+</body>
+<script src="main.js"></script>
+</html>
